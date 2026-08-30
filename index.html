@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="A simple private spending log. Your data never leaves your browser." />
+<title>Spending Log</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>💸</text></svg>" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <h1>💸 Spending Log</h1>
+    <div class="month-nav">
+      <button id="prevMonth" aria-label="Previous month">‹</button>
+      <span id="monthLabel">—</span>
+      <button id="nextMonth" aria-label="Next month">›</button>
+    </div>
+  </header>
+
+  <section class="summary">
+    <div class="total">
+      <span class="total-label">Spent this month</span>
+      <span class="total-value" id="monthTotal">$0.00</span>
+    </div>
+  </section>
+
+  <form id="addForm" class="add-form" autocomplete="off">
+    <input type="date" id="date" required />
+    <input type="text" id="desc" placeholder="What was it for?" required maxlength="80" />
+    <select id="category">
+      <option>Food</option>
+      <option>Transport</option>
+      <option>Housing</option>
+      <option>Utilities</option>
+      <option>Shopping</option>
+      <option>Health</option>
+      <option>Entertainment</option>
+      <option>Other</option>
+    </select>
+    <input type="number" id="amount" placeholder="0.00" step="0.01" min="0" required inputmode="decimal" />
+    <button type="submit">Add</button>
+  </form>
+
+  <section class="breakdown" id="breakdown" hidden>
+    <h2>By category</h2>
+    <ul id="bars"></ul>
+  </section>
+
+  <section class="list">
+    <div class="list-head">
+      <h2>Transactions</h2>
+      <div class="list-actions">
+        <button id="exportBtn" class="ghost">Export CSV</button>
+        <button id="clearBtn" class="ghost danger">Clear all</button>
+      </div>
+    </div>
+    <ol id="entries"></ol>
+    <p class="empty" id="empty" hidden>Nothing logged for this month yet.</p>
+  </section>
+
+  <footer class="foot">
+    Data is stored only in this browser (<code>localStorage</code>). Nothing is uploaded.
+  </footer>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
