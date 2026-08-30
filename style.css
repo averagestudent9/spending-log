@@ -70,6 +70,16 @@ h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .05em; color: v
   .add-form #desc, .add-form button { grid-column: 1 / -1; }
 }
 
+.dropzone {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  text-align: center; padding: 20px; margin-bottom: 22px; cursor: pointer;
+  border: 1.5px dashed var(--border); border-radius: var(--radius);
+  background: var(--card); color: var(--muted); transition: border-color .15s, background .15s;
+}
+.dropzone strong { color: var(--text); font-size: 14px; }
+.dropzone span { font-size: 12.5px; }
+.dropzone.drag { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--card)); }
+
 .breakdown { margin-bottom: 22px; }
 #bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 #bars li { display: grid; grid-template-columns: 110px 1fr auto; gap: 10px; align-items: center; font-size: 14px; }

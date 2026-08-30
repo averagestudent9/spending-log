@@ -156,20 +156,38 @@ $("clearBtn").addEventListener("click", () => {
 
 // --- CSV import (Amex "Download → CSV", or this app's own export) ----------
 $("importBtn").addEventListener("click", () => $("importFile").click());
+
 $("importFile").addEventListener("change", (ev) => {
-  const file = ev.target.files[0];
+  handleFile(ev.target.files[0]);
+  ev.target.value = ""; // allow re-importing the same filename
+});
+
+const dz = $("dropzone");
+["dragenter", "dragover"].forEach((e) =>
+  dz.addEventListener(e, (ev) => { ev.preventDefault(); dz.classList.add("drag"); })
+);
+["dragleave", "drop"].forEach((e) =>
+  dz.addEventListener(e, (ev) => { ev.preventDefault(); dz.classList.remove("drag"); })
+);
+dz.addEventListener("drop", (ev) => handleFile(ev.dataTransfer.files[0]));
+// don't let a stray drop elsewhere on the page navigate away from the app
+document.addEventListener("dragover", (ev) => ev.preventDefault());
+document.addEventListener("drop", (ev) => ev.preventDefault());
+
+function handleFile(file) {
   if (!file) return;
+  if (file.size > 15_000_000) { alert("That file is unexpectedly large — is it a CSV?"); return; }
   const reader = new FileReader();
+  reader.onerror = () => alert("Could not read that file.");
   reader.onload = () => {
     try {
       importCsv(String(reader.result));
     } catch (err) {
-      alert("Could not read that file.\n\n" + err.message);
+      alert("Could not import that file.\n\n" + err.message);
     }
-    ev.target.value = ""; // allow re-importing the same filename
   };
   reader.readAsText(file);
-});
+}
 
 /** RFC-4180-ish CSV parser: handles quotes, escaped quotes, embedded newlines. */
 function parseCsv(text) {

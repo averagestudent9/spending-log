@@ -43,6 +43,12 @@
     <button type="submit">Add</button>
   </form>
 
+  <label class="dropzone" id="dropzone">
+    <input type="file" id="importFile" accept=".csv,text/csv" hidden />
+    <strong>Upload a CSV</strong>
+    <span>Drag an American Express CSV here, or click to choose a file</span>
+  </label>
+
   <section class="breakdown" id="breakdown" hidden>
     <h2>By category</h2>
     <ul id="bars"></ul>
@@ -55,7 +61,6 @@
         <button id="importBtn" class="ghost">Import CSV</button>
         <button id="exportBtn" class="ghost">Export CSV</button>
         <button id="clearBtn" class="ghost danger">Clear all</button>
-        <input type="file" id="importFile" accept=".csv,text/csv" hidden />
       </div>
     </div>
     <ol id="entries"></ol>
