@@ -52,8 +52,10 @@
     <div class="list-head">
       <h2>Transactions</h2>
       <div class="list-actions">
+        <button id="importBtn" class="ghost">Import CSV</button>
         <button id="exportBtn" class="ghost">Export CSV</button>
         <button id="clearBtn" class="ghost danger">Clear all</button>
+        <input type="file" id="importFile" accept=".csv,text/csv" hidden />
       </div>
     </div>
     <ol id="entries"></ol>
@@ -61,7 +63,8 @@
   </section>
 
   <footer class="foot">
-    Data is stored only in this browser (<code>localStorage</code>). Nothing is uploaded.
+    Data is stored only in this browser (<code>localStorage</code>). Nothing is uploaded.<br />
+    <span class="hint">Amex: Statements &amp; Activity &rarr; Download &rarr; CSV, then Import CSV above.</span>
   </footer>
 </div>
 <script type="module" src="app.js"></script>

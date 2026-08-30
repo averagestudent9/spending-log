@@ -107,4 +107,5 @@ button.ghost.danger { color: var(--danger); border-color: color-mix(in srgb, var
 
 .empty { color: var(--muted); text-align: center; padding: 24px; }
 .foot { margin-top: 32px; color: var(--muted); font-size: 13px; text-align: center; }
+.hint { font-size: 12px; opacity: .8; }
 code { background: var(--border); padding: 1px 5px; border-radius: 4px; font-size: .9em; }

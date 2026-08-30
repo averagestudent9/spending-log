@@ -29,6 +29,21 @@ Open `index.html` in a browser. That's it.
 
 Every `git push` after that redeploys automatically.
 
+## Import from American Express (or any bank)
+
+1. In Amex: **Statements & Activity → Download → CSV** (pick a date range).
+2. In the app: **Import CSV**, choose the file.
+3. Review the summary (new / already-logged / payments skipped) and confirm.
+
+Details:
+- Charges are imported; payments and credits are skipped.
+- Amex's own category ("Transportation-Fuel", etc.) is mapped to one of the app's
+  categories; unknown ones fall back to a keyword guess, then "Other".
+- Re-importing an overlapping file is safe — duplicates are detected by the Amex
+  reference number, or by date + amount + description.
+- Works with other banks' CSVs too, as long as they have date, description and
+  amount columns. Also re-imports this app's own `Export CSV` file.
+
 ## Customise
 
 - **Currency:** change `CURRENCY` at the top of `app.js`.
