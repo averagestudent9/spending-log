@@ -37,12 +37,21 @@ Every `git push` after that redeploys automatically.
 
 Details:
 - Charges are imported; payments and credits are skipped.
-- Amex's own category ("Transportation-Fuel", etc.) is mapped to one of the app's
-  categories; unknown ones fall back to a keyword guess, then "Other".
+- Amex's own category is mapped to one of the app's categories; unknown ones fall
+  back to a keyword guess (tuned for UK merchants), then "Other".
+- **Card member:** the "Card Member" column is read per transaction, so you can
+  filter the whole app by cardholder (the dropdown appears once ≥1 is set). If a
+  file has no card-member column, you're asked once for a name to assign the
+  batch to. Click the name under any transaction to change it.
 - Re-importing an overlapping file is safe — duplicates are detected by the Amex
   reference number, or by date + amount + description.
 - Works with other banks' CSVs too, as long as they have date, description and
   amount columns. Also re-imports this app's own `Export CSV` file.
+
+### Region
+
+Set for the **UK** by default — `CURRENCY = "£"` and `DATE_ORDER = "DMY"` at the
+top of `app.js`. For a US Amex export, change these to `"$"` and `"MDY"`.
 
 ## Customise
 

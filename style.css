@@ -93,6 +93,10 @@ button.ghost {
   padding: 6px 12px; border-radius: 8px; font: inherit; cursor: pointer;
 }
 button.ghost.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
+.member-filter select {
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: 6px 10px; font: inherit;
+}
 
 #entries { list-style: none; margin: 0; padding: 0; }
 #entries li {
@@ -100,7 +104,14 @@ button.ghost.danger { color: var(--danger); border-color: color-mix(in srgb, var
   padding: 12px 4px; border-bottom: 1px solid var(--border);
 }
 #entries .e-date { color: var(--muted); font-size: 13px; }
+#entries .e-main { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
 #entries .e-desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#entries .e-who {
+  font-size: 12px; color: var(--muted); cursor: pointer; align-self: flex-start;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+#entries .e-who:hover { color: var(--accent); }
+#entries .e-who.muted { opacity: .45; }
 #entries .e-cat {
   font-size: 12px; color: var(--muted); border: 1px solid var(--border);
   border-radius: 999px; padding: 1px 8px; justify-self: start;
