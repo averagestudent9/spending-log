@@ -80,6 +80,19 @@
     <span class="hint">Amex: Statements &amp; Activity &rarr; Download &rarr; CSV, then Import CSV above.</span>
   </footer>
 </div>
+
+<div class="modal-backdrop" id="importModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="imTitle">
+    <h3 id="imTitle">Import CSV</h3>
+    <p id="imBody"></p>
+    <div class="modal-actions">
+      <button id="imCancel" class="ghost">Cancel</button>
+      <button id="imReplace" class="ghost danger">Replace all data</button>
+      <button id="imAdd">Add</button>
+    </div>
+  </div>
+</div>
+
 <script type="module" src="app.js"></script>
 </body>
 </html>

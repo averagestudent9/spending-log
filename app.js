@@ -290,9 +290,9 @@ function handleFile(file) {
   if (file.size > 15_000_000) { alert("That file is unexpectedly large — is it a CSV?"); return; }
   const reader = new FileReader();
   reader.onerror = () => alert("Could not read that file.");
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
-      importCsv(String(reader.result));
+      await importCsv(String(reader.result));
     } catch (err) {
       alert("Could not import that file.\n\n" + err.message);
     }
@@ -362,7 +362,7 @@ function mapCategory(amexCat, desc) {
   return "Other";
 }
 
-function importCsv(text) {
+async function importCsv(text) {
   const rows = parseCsv(text);
   if (!rows.length) throw new Error("File is empty.");
 
@@ -430,13 +430,14 @@ function importCsv(text) {
     if (override) parsed.forEach((p) => { if (!p.member) p.member = override; });
   }
 
-  const haveKeys = new Set(expenses.map(dedupeKey));
-  const haveRefs = new Set(expenses.map((e) => e.ref).filter(Boolean));
+  const charges = parsed.filter((p) => p.amount > 0);
+  const credits = parsed.length - charges.length;
+  if (!charges.length) {
+    alert("No charges found to import — the file only had payments or credits.");
+    return;
+  }
 
-  let credits = 0, dupes = 0;
-  const fresh = [];
-  for (const p of parsed) {
-    if (p.amount <= 0) { credits++; continue; }
+  const toRecord = (p) => {
     const rec = {
       id: crypto.randomUUID(),
       date: p.date,
@@ -447,32 +448,78 @@ function importCsv(text) {
       source: "amex",
     };
     if (p.ref) rec.ref = p.ref;
-    if ((p.ref && haveRefs.has(p.ref)) || haveKeys.has(dedupeKey(rec))) { dupes++; continue; }
+    return rec;
+  };
+  const allRecords = charges.map(toRecord);
+
+  // preview for "Add": which rows are new vs. already logged
+  const haveKeys = new Set(expenses.map(dedupeKey));
+  const haveRefs = new Set(expenses.map((e) => e.ref).filter(Boolean));
+  const fresh = [];
+  let dupes = 0;
+  for (const rec of allRecords) {
+    if ((rec.ref && haveRefs.has(rec.ref)) || haveKeys.has(dedupeKey(rec))) { dupes++; continue; }
     haveKeys.add(dedupeKey(rec));
-    if (p.ref) haveRefs.add(p.ref);
+    if (rec.ref) haveRefs.add(rec.ref);
     fresh.push(rec);
   }
 
-  if (!fresh.length) {
-    alert(`Nothing new to import.\n\n${dupes} already logged, ${credits} payments/credits skipped.`);
-    return;
-  }
-  const members = [...new Set(fresh.map((e) => e.member).filter(Boolean))];
-  const ok = confirm(
-    `Found ${parsed.length} rows.\n\n` +
-      `• ${fresh.length} new transactions to add\n` +
-      `• ${dupes} already logged (skipped)\n` +
-      `• ${credits} payments/credits (skipped)\n` +
-      (members.length ? `• card members: ${members.join(", ")}\n` : "") +
-      `\nAdd ${fresh.length} transactions?`
-  );
-  if (!ok) return;
+  const members = [...new Set(allRecords.map((r) => r.member).filter(Boolean))];
+  const mode = await askImportMode({
+    total: charges.length,
+    fresh: fresh.length,
+    dupes,
+    credits,
+    members,
+    canReplace: expenses.length > 0,
+  });
+  if (!mode) return;
 
-  expenses.push(...fresh);
+  let added;
+  if (mode === "replace") {
+    expenses = allRecords;
+    added = allRecords;
+  } else {
+    if (!fresh.length) {
+      alert("Nothing new to add — every charge in the file is already logged.");
+      return;
+    }
+    expenses.push(...fresh);
+    added = fresh;
+  }
   save();
-  const latest = fresh.map((e) => e.date).sort().pop();
-  viewMonth = startOfMonth(new Date(latest + "T00:00"));
+  memberFilter = "all";
+  viewMonth = startOfMonth(new Date(added.map((e) => e.date).sort().pop() + "T00:00"));
   render();
+}
+
+/** Modal asking whether to add the file to existing data or replace everything. */
+function askImportMode(info) {
+  return new Promise((resolve) => {
+    const m = $("importModal");
+    $("imBody").innerHTML =
+      `<strong>${info.total}</strong> charge${info.total === 1 ? "" : "s"} in this file` +
+      (info.credits ? ` &nbsp;·&nbsp; ${info.credits} payment/credit line${info.credits === 1 ? "" : "s"} ignored` : "") +
+      (info.members.length ? `<br>Card members: ${info.members.map(escapeHtml).join(", ")}` : "") +
+      `<br><span class="muted-note">${info.fresh} new, ${info.dupes} already logged</span>`;
+    $("imReplace").hidden = !info.canReplace;
+    $("imAdd").textContent = info.canReplace ? `Add ${info.fresh} new` : `Import ${info.fresh}`;
+    m.hidden = false;
+
+    const finish = (v) => {
+      m.hidden = true;
+      document.removeEventListener("keydown", onKey);
+      resolve(v);
+    };
+    const onKey = (e) => { if (e.key === "Escape") finish(null); };
+    $("imAdd").onclick = () => finish("add");
+    $("imReplace").onclick = () => {
+      if (confirm("Delete all current data and use this file instead?")) finish("replace");
+    };
+    $("imCancel").onclick = () => finish(null);
+    m.onclick = (e) => { if (e.target === m) finish(null); };
+    document.addEventListener("keydown", onKey);
+  });
 }
 
 function dedupeKey(e) {

@@ -144,6 +144,27 @@ button.ghost.danger { color: var(--danger); border-color: color-mix(in srgb, var
   #entries .e-date { grid-column: 1 / -1; }
 }
 
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 50; padding: 20px;
+  background: rgba(0, 0, 0, .55);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-backdrop[hidden] { display: none; }
+.modal {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px; width: 100%; max-width: 420px;
+}
+.modal h3 { margin: 0 0 10px; font-size: 16px; }
+.modal p { margin: 0 0 18px; font-size: 14px; line-height: 1.55; }
+.modal .muted-note { color: var(--muted); font-size: 12.5px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.modal-actions button {
+  padding: 9px 16px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--card); color: var(--text); font: inherit; font-weight: 600; cursor: pointer;
+}
+.modal-actions #imAdd { background: var(--accent); border-color: var(--accent); color: #fff; }
+.modal-actions .danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, transparent); }
+
 .empty { color: var(--muted); text-align: center; padding: 24px; }
 .foot { margin-top: 32px; color: var(--muted); font-size: 13px; text-align: center; }
 .hint { font-size: 12px; opacity: .8; }

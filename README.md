@@ -32,8 +32,11 @@ Every `git push` after that redeploys automatically.
 ## Import from American Express (or any bank)
 
 1. In Amex: **Statements & Activity → Download → CSV** (pick a date range).
-2. In the app: **Import CSV**, choose the file.
-3. Review the summary (new / already-logged / payments skipped) and confirm.
+2. In the app: **Import CSV** (or drag the file onto the upload box), choose the file.
+3. A dialog shows what's in the file, then you pick:
+   - **Add** — merge the file's charges into what you already have (duplicates skipped)
+   - **Replace all data** — wipe everything and use only this file
+   - **Cancel** — do nothing
 
 Details:
 - Charges are imported; payments and credits are skipped.
