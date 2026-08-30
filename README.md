@@ -47,8 +47,9 @@ Details:
   friendlier ones via `MEMBER_ALIASES` at the top of `app.js`
   (e.g. `"john doe": "Eric"`). Applied on import and to data already stored.
 - **Split this month:** when two or more people have transactions in the viewed
-  month, a panel shows each person's total and, for exactly two people, a 50/50
-  settle-up line ("Dewi owes Eric £53.10"). Click a name to filter to them.
+  month, a panel summarises each person's spend — item count, total, and share of
+  the month. It's just a breakdown of each person's own charges; nobody owes
+  anybody. Click a name to filter the app to them.
 - Re-importing an overlapping file is safe — duplicates are detected by the Amex
   reference number, or by date + amount + description.
 - Works with other banks' CSVs too, as long as they have date, description and

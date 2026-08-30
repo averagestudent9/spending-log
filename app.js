@@ -131,34 +131,30 @@ function renderSplit(monthRows) {
   const per = {};
   for (const e of monthRows) {
     const k = e.member || "Unassigned";
-    per[k] = (per[k] || 0) + e.amount;
+    if (!per[k]) per[k] = { total: 0, count: 0 };
+    per[k].total += e.amount;
+    per[k].count += 1;
   }
-  const entries = Object.entries(per).sort((a, b) => b[1] - a[1]);
+  const entries = Object.entries(per).sort((a, b) => b[1].total - a[1].total);
   const named = entries.filter(([k]) => k !== "Unassigned");
   $("split").hidden = named.length < 2;
   if (named.length < 2) return;
 
-  const grand = entries.reduce((s, [, v]) => s + v, 0);
-  let html = entries
+  const grand = entries.reduce((s, [, v]) => s + v.total, 0);
+  const pct = (v) => (grand ? Math.round((v / grand) * 100) : 0);
+
+  const rows = entries
     .map(
       ([k, v]) => `
       <div class="split-row" data-member="${k === "Unassigned" ? "__none" : escapeHtml(k)}">
-        <span>${escapeHtml(k)}</span>
-        <span class="split-bar"><span style="width:${grand ? (v / grand) * 100 : 0}%"></span></span>
-        <span>${money(v)}</span>
+        <span>${escapeHtml(k)} <span class="split-count">${v.count} ${v.count === 1 ? "item" : "items"}</span></span>
+        <span class="split-bar"><span style="width:${grand ? (v.total / grand) * 100 : 0}%"></span></span>
+        <span>${money(v.total)} <span class="split-count">${pct(v.total)}%</span></span>
       </div>`
     )
     .join("");
 
-  if (named.length === 2) {
-    const [[an, av], [bn, bv]] = named; // sorted desc → av >= bv
-    const diff = av - bv;
-    html += diff < 0.01
-      ? `<p class="settle">${escapeHtml(an)} and ${escapeHtml(bn)} spent the same this month.</p>`
-      : `<p class="settle">${escapeHtml(an)} paid ${money(diff)} more — ` +
-        `${escapeHtml(bn)} owes ${escapeHtml(an)} <strong>${money(diff / 2)}</strong> to split 50/50</p>`;
-  }
-  $("splitBody").innerHTML = html;
+  $("splitBody").innerHTML = rows + `<p class="settle">${money(grand)} total this month — each person's own charges, nothing owed.</p>`;
 }
 
 $("splitBody").addEventListener("click", (ev) => {
