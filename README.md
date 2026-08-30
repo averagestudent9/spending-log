@@ -43,6 +43,12 @@ Details:
   filter the whole app by cardholder (the dropdown appears once ≥1 is set). If a
   file has no card-member column, you're asked once for a name to assign the
   batch to. Click the name under any transaction to change it.
+- **Renaming cardholders:** the names printed on the Amex statement are mapped to
+  friendlier ones via `MEMBER_ALIASES` at the top of `app.js`
+  (e.g. `"john doe": "Eric"`). Applied on import and to data already stored.
+- **Split this month:** when two or more people have transactions in the viewed
+  month, a panel shows each person's total and, for exactly two people, a 50/50
+  settle-up line ("Dewi owes Eric £53.10"). Click a name to filter to them.
 - Re-importing an overlapping file is safe — duplicates are detected by the Amex
   reference number, or by date + amount + description.
 - Works with other banks' CSVs too, as long as they have date, description and

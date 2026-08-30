@@ -5,6 +5,20 @@ const STORAGE_KEY = "spending-log:v1";
 const CURRENCY = "£";        // change to "$", "€", etc.
 const DATE_ORDER = "DMY";    // "DMY" for UK/EU CSVs, "MDY" for US
 
+// Rename the cardholder as it appears on the Amex statement to the name you want
+// to see. Matched case-insensitively on the full name or just the first name.
+const MEMBER_ALIASES = {
+  "john doe": "Eric",
+  "jane doe": "Dewi",
+};
+
+function aliasFor(name) {
+  const raw = (name || "").trim();
+  if (!raw) return "";
+  const k = raw.toLowerCase();
+  return MEMBER_ALIASES[k] || MEMBER_ALIASES[k.split(/\s+/)[0]] || raw;
+}
+
 /** @typedef {{id:string,date:string,desc:string,category:string,amount:number,member?:string,ref?:string,source?:string}} Expense */
 
 const CATEGORIES = ["Food", "Transport", "Housing", "Utilities", "Shopping", "Health", "Entertainment", "Other"];
@@ -13,6 +27,16 @@ const CATEGORIES = ["Food", "Transport", "Housing", "Utilities", "Shopping", "He
 let expenses = load();
 let viewMonth = startOfMonth(new Date());
 let memberFilter = "all"; // "all" | "__none" | a card-member name
+
+// bring any already-imported names in line with the aliases above
+(function migrateAliases() {
+  let changed = false;
+  for (const e of expenses) {
+    const a = aliasFor(e.member);
+    if (a !== (e.member || "")) { e.member = a; changed = true; }
+  }
+  if (changed) save();
+})();
 
 // --- persistence -----------------------------------------------------------
 function load() {
@@ -55,12 +79,15 @@ const $ = (id) => document.getElementById(id);
 
 function render() {
   renderMemberFilter();
-  const rows = expenses
-    .filter((e) => inViewMonth(e) && matchesMember(e))
+  const monthRows = expenses.filter(inViewMonth);
+  const rows = monthRows
+    .filter(matchesMember)
     .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
 
   $("monthLabel").textContent = viewMonth.toLocaleDateString(undefined, { month: "long", year: "numeric" });
   $("monthTotal").textContent = money(rows.reduce((s, e) => s + e.amount, 0));
+
+  renderSplit(monthRows);
 
   // category breakdown
   const byCat = {};
@@ -99,6 +126,48 @@ function render() {
     )
     .join("");
 }
+
+function renderSplit(monthRows) {
+  const per = {};
+  for (const e of monthRows) {
+    const k = e.member || "Unassigned";
+    per[k] = (per[k] || 0) + e.amount;
+  }
+  const entries = Object.entries(per).sort((a, b) => b[1] - a[1]);
+  const named = entries.filter(([k]) => k !== "Unassigned");
+  $("split").hidden = named.length < 2;
+  if (named.length < 2) return;
+
+  const grand = entries.reduce((s, [, v]) => s + v, 0);
+  let html = entries
+    .map(
+      ([k, v]) => `
+      <div class="split-row" data-member="${k === "Unassigned" ? "__none" : escapeHtml(k)}">
+        <span>${escapeHtml(k)}</span>
+        <span class="split-bar"><span style="width:${grand ? (v / grand) * 100 : 0}%"></span></span>
+        <span>${money(v)}</span>
+      </div>`
+    )
+    .join("");
+
+  if (named.length === 2) {
+    const [[an, av], [bn, bv]] = named; // sorted desc → av >= bv
+    const diff = av - bv;
+    html += diff < 0.01
+      ? `<p class="settle">${escapeHtml(an)} and ${escapeHtml(bn)} spent the same this month.</p>`
+      : `<p class="settle">${escapeHtml(an)} paid ${money(diff)} more — ` +
+        `${escapeHtml(bn)} owes ${escapeHtml(an)} <strong>${money(diff / 2)}</strong> to split 50/50</p>`;
+  }
+  $("splitBody").innerHTML = html;
+}
+
+$("splitBody").addEventListener("click", (ev) => {
+  const row = ev.target.closest(".split-row");
+  if (!row) return;
+  memberFilter = row.dataset.member;
+  render();
+  $("entries").scrollIntoView({ behavior: "smooth", block: "start" });
+});
 
 function renderMemberFilter() {
   const members = [...new Set(expenses.map((e) => e.member).filter(Boolean))].sort();
@@ -155,7 +224,7 @@ $("entries").addEventListener("click", (ev) => {
     const e = expenses.find((x) => x.id === who.dataset.id);
     const v = prompt("Card member for this transaction:", e.member || "");
     if (v !== null) {
-      e.member = v.trim();
+      e.member = aliasFor(v);
       save();
       render();
     }
@@ -345,7 +414,7 @@ function importCsv(text) {
       desc: (col.desc >= 0 ? r[col.desc] : "").trim() || "(no description)",
       amexCat: col.category >= 0 ? (r[col.category] || "").trim() : "",
       ref: col.ref >= 0 ? (r[col.ref] || "").trim() : "",
-      member: col.member >= 0 ? (r[col.member] || "").trim() : "",
+      member: col.member >= 0 ? aliasFor(r[col.member]) : "",
     });
   }
   if (!parsed.length) throw new Error("No transactions found in the file.");
@@ -361,7 +430,7 @@ function importCsv(text) {
       ? "No card member column found. Assign every transaction in this file to (leave blank to skip):"
       : `${parsed.length - named} rows have no card member. Assign those to (leave blank to skip):`;
     const knownGuess = [...new Set(parsed.map((p) => p.member).filter(Boolean))][0] || "";
-    const override = (prompt(msg, knownGuess) || "").trim();
+    const override = aliasFor(prompt(msg, knownGuess) || "");
     if (override) parsed.forEach((p) => { if (!p.member) p.member = override; });
   }
 
